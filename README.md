@@ -118,6 +118,44 @@ docker compose up -d
 ```
 Access NGINX Proxy Manager at ```http://<raspberrypi-ip>:81```
 
+## Adguard Home
+
+Adguard acts as a [DNS sinkhole](https://en.wikipedia.org/wiki/DNS_sinkhole), blocking ads and telemetry requests.
+
+``` Bash
+services:
+  adguardhome:
+    image: adguard/adguardhome:latest
+    container_name: adguard
+    ports:
+      - "53:53/tcp"
+      - "53:53/udp"
+      # - "67:67/udp"
+      # - "68:68/udp"
+      - "3003:3000/tcp"
+      - "8062:80/tcp"
+      - "445:443"
+      - "853:853/tcp"
+      - "5443:5443"
+    volumes:
+      - ./work:/opt/adguardhome/work
+      - ./conf:/opt/adguardhome/conf
+    restart: unless-stopped
+    networks:
+      - adguard
+      - proxy
+
+networks:
+  adguard:
+    name: adguard
+
+  proxy:
+    external: true
+```
+After running the docker compose yml you should be able to reach adguard through ```http://<raspberrypi_ip>:3003``` for initial setup and then ```http://<raspberrypi_ip>:8062```.
+
+Use DNS Rewrite to point domains towards reverse proxy for example *.lan -> 192.168.1.10
+
 ## Portainer
 Portainer is a GUI tool for managing Docker containers.
 
@@ -150,88 +188,6 @@ networks:
 ```
 
 Access Portainer at ```https://<raspberrypi-ip>:9443```
-
-## Pi-Hole + Cloudflared
-
-Pi-Hole acts as a [DNS sinkhole](https://en.wikipedia.org/wiki/DNS_sinkhole), blocking ads and telemetry requests. Paired with Cloudflared it allows [DNS over HTTPS (DoH)](https://en.wikipedia.org/wiki/DNS_over_HTTPS) encrypting DNS queries.
-
-To hide password within compose files you can use [secrets](https://docs.docker.com/compose/how-tos/use-secrets/). It is used within all composes below to hide sensitive information, to do the same you would need to create a file within the docker/pihole directory with this filestructure ```/secrets/pihole_password.txt```
-
-``` Bash
-services:
-  pihole:
-    container_name: pihole
-    image: pihole/pihole:latest
-    secrets:                                          #Define which secret to use
-      - pihole_password
-    ports:
-      - "53:53/tcp"
-      - "53:53/udp"
-      - "8061:80/tcp"
-      - "4443:443/tcp"
-    environment:
-      TZ: 'Europe/Stockholm'
-      WEBPASSWORD_FILE: /run/secrets/pihole_password   #Where to place the secret within the container
-    volumes:
-       - './data/etc:/etc/pihole/'
-    restart: unless-stopped
-    networks:
-      pihole:
-        ipv4_address: 172.50.0.2
-      proxy:
-        ipv4_address: 172.20.0.4
-
-  cloudflared-cf:
-    container_name: cloudflared-cf
-    image: cloudflare/cloudflared:latest
-    command: proxy-dns --address 0.0.0.0 --port 5353 --upstream https://1.1.1.1/dns-query --upstream https://1.0.0.1/dns-query
-    restart: unless-stopped
-    networks:
-      pihole:
-        ipv4_address: 172.50.1.1
-
-  cloudflared-goog:
-    container_name: cloudflared-goog
-    image: cloudflare/cloudflared:latest
-    command: proxy-dns --address 0.0.0.0 --port 5353 --upstream https://8.8.8.8/dns-query --upstream https://8.8.4.4/dns-query
-    restart: unless-stopped
-    networks:
-      pihole:
-        ipv4_address: 172.50.8.8
-
-networks:
-  pihole:
-    name: pihole
-    ipam:
-      config:
-        - subnet: 172.50.0.0/16
-  proxy:
-    external: true
-
-secrets:
-  pihole_password:
-    file: ./secrets/pihole_password.txt                #Path towards secret.txt
-```
-After running the docker compose yml you should be able to reach pihole through ```http://<raspberrypi_ip>:8061/admin```.
-
-For the final configuration, go into the Pi-hole settings and change the upstream DNS servers to the Docker container IPs of Cloudflared (e.g., 172.30.1.1 and 172.30.8.8). That’s all you need to do on the Raspberry Pi. After that, update your network’s DNS server (usually set in your router) to point to the Raspberry Pi. At this point, your network should be using Pi-hole as it’s DNS resolver.
-
-### Pi-hole Reverse Proxy Configuration
-The goal of a reverse proxy is to reach your services using domain names instead of IP addresses. In my homelab I use the .lan domain. The IETF reserved home.arpa for LAN use, but honestly the name is ridiculous, so I don’t bother with it. I would recommend against using .local because Apple devices rely on it for mDNS, which will cause conflicts and prevent you from reaching those services from these devices.
-
-To integrate Pi-hole with a reverse proxy, you need Pi-hole to point your service domains/subdomains to your reverse proxy. You can do this in two ways:
-
-1. Add each services+subdomain to pihole each time you create a service/application. For example ```pihole.lan → 192.168.1.10``` under local DNS records in the pihole webUI (not recommended).
-   
-2. Settings → All Settings → Miscellaneous and enable ```misc.etc_dnsmasq_d``` and also add these two lines to ```misc.dnsmasq_lines```. First line in the config below prevents pihole from trying to resolve .lan with an upstream DNS server, second line points any subdomain to 192.168.1.10 which would be the proxy in my case.
-   
-```
-server=/lan/#
-address=/.lan/192.168.1.10
-```
-
-
-<img width="1240" height="458" alt="Screenshot 2025-12-08 213259" src="https://github.com/user-attachments/assets/1c5b7ee5-7463-40b5-8999-ad570d00868a" />
 
 ## Bitwarden/Vaultwarden
 Bitwarden is a password manager and vaultwarden is a more lightweight option that you can host yourself. This works with the bitwarden app and extension.
@@ -378,6 +334,8 @@ networks:
      external: true
 ```
 
+Should either have a default login or you can check logs to see if it generates a temporary password. ```docker logs -f filebrowser```
+
 ## Obsidian-LiveSync
 
 Obsidian is a note-taking app. Obsidian LiveSync is a self-hosted synchronization plugin you can run on a Raspberry Pi, enabling real-time, end-to-end encrypted syncing of your notes across multiple devices without relying on third-party cloud services.
@@ -415,182 +373,6 @@ secrets:
 ```
 
 Next you will have to setup the database, I would recommend following this [Guide](https://www.reddit.com/r/selfhosted/comments/1eo7knj/guide_obsidian_with_free_selfhosted_instant_sync/)
-
-## Grafana
-Grafana visualized metrics and dashboards collected from Prometheus and other sources to monitor system and container performance. To setup grafana I followed oijkn's guide on github  [Oijkn](https://github.com/oijkn/Docker-Raspberry-PI-Monitoring?tab=readme-ov-file)
-
-``` Bash
-services:
-  grafana:
-    container_name: monitoring-grafana
-    image: grafana/grafana:latest
-    hostname: rpi-grafana
-    restart: unless-stopped
-    user: "472"
-    networks:
-      - monitor
-    ports:
-      - "3000:3000"
-    env_file:
-      - ./grafana/.env
-    volumes:
-      - grafana-data:/var/lib/grafana
-      - ./grafana/provisioning:/etc/grafana/provisioning
-    depends_on:
-      - prometheus
-    healthcheck:
-      test: ["CMD", "wget", "-O", "/dev/null", "http://localhost:3000/api/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 30s
-    labels:
-      - "com.example.description=Grafana Dashboard"
-      - "com.example.service=monitoring"
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
-
-  cadvisor:
-    container_name: monitoring-cadvisor
-    image: gcr.io/cadvisor/cadvisor:latest
-    hostname: rpi-cadvisor
-    restart: unless-stopped
-    cap_add:
-      - SYS_ADMIN
-    networks:
-      - monitor
-    expose:
-      - 8080
-    command:
-      - '-housekeeping_interval=15s'
-      - '-docker_only=true'
-      - '-store_container_labels=false'
-    devices:
-      - /dev/kmsg
-    volumes:
-      - /:/rootfs:ro
-      - /var/run:/var/run:rw
-      - /sys:/sys:ro
-      - /var/lib/docker/:/var/lib/docker:ro
-      - /dev/disk/:/dev/disk:ro
-      - /etc/machine-id:/etc/machine-id:ro
-    healthcheck:
-      test: ["CMD", "wget", "-O", "/dev/null", "http://localhost:8080/healthz"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    labels:
-      - "com.example.description=cAdvisor Container Monitoring"
-      - "com.example.service=monitoring"
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
-    mem_limit: 256m
-    mem_reservation: 128m
-
-  node-exporter:
-    container_name: monitoring-node-exporter
-    image: prom/node-exporter:latest
-    hostname: rpi-exporter
-    restart: unless-stopped
-    networks:
-      - monitor
-    expose:
-      - 9100
-    command:
-      - --path.procfs=/host/proc
-      - --path.sysfs=/host/sys
-      - --path.rootfs=/host
-      - --collector.filesystem.ignored-mount-points
-      - ^/(sys|proc|dev|host|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/run/docker/netns|rootfs/var/lib/docker/aufs)($$|/)
-    volumes:
-      - /proc:/host/proc:ro
-      - /sys:/host/sys:ro
-      - /:/rootfs:ro
-      - /:/host:ro,rslave
-    healthcheck:
-      test: ["CMD", "wget", "-O", "/dev/null", "http://localhost:9100/metrics"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    labels:
-      - "com.example.description=Node Exporter"
-      - "com.example.service=monitoring"
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
-    mem_limit: 128m
-    mem_reservation: 64m
-
-  prometheus:
-    container_name: monitoring-prometheus
-    image: prom/prometheus:latest
-    hostname: rpi-prometheus
-    restart: unless-stopped
-    user: "nobody"
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--storage.tsdb.retention.time=1y'
-      - '--storage.tsdb.retention.size=10GB'
-      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
-      - '--web.console.templates=/usr/share/prometheus/consoles'
-    networks:
-      - monitor
-    expose:
-      - 9090
-    volumes:
-      - prometheus-data:/prometheus
-      - ./prometheus:/etc/prometheus/
-    depends_on:
-      - cadvisor
-      - node-exporter
-    healthcheck:
-      test: ["CMD", "wget", "-O", "/dev/null", "http://localhost:9090/-/healthy"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 30s
-    labels:
-      - "com.example.description=Prometheus Time Series Database"
-      - "com.example.service=monitoring"
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
-    mem_limit: 1g
-    mem_reservation: 512m
-
-volumes:
-  grafana-data:
-    labels:
-      - "com.example.description=Grafana Persistent Data"
-      - "com.example.service=monitoring"
-  prometheus-data:
-    labels:
-      - "com.example.description=Prometheus Persistent Data"
-      - "com.example.service=monitoring"
-
-networks:
-  monitor:
-    driver: bridge
-    name: grafana
-    ipam:
-      config:
-        - subnet: 172.80.0.0/16
-          gateway: 172.80.0.1
-    labels:
-      - "com.example.description=Monitoring Network"
-      - "com.example.service=monitoring"
-```
 
 ## Gluetun
 

@@ -7,32 +7,77 @@
 
 This repository documents my raspberry pi server setup, covering configuration steps, docker compose files, and other useful resources. 
 
+
 ## 🧩 Services Overview
 
-List of all services included in this Raspberry Pi setup, along with short descriptions and repository links for reference.
+This section lists all services included in this Raspberry Pi setup.
+
+---
+
+## 🌐 Networking & Access
 
 | Service | Description | Repository |
-|----------|--------------|-------------|
-| **[Nginx Proxy Manager](#nginx-proxy-manager)** | Manages reverse proxy configurations and SSL certificates through a simple web interface, allowing you to route domains to local services. | [Repository ↗︎](https://github.com/Nginxproxymanager/Nginx-Proxy-Manager) |
-| **[Portainer](#portainer)** | Web-based GUI for managing Docker containers, images, networks, and volumes. | [Repository ↗︎](https://github.com/Portainer/Portainer) |
-| **[Adguard Home](#adguard-home)** | Network-wide ad blocker acting as a DNS sinkhole to block unwanted domains. | [Repository ↗︎](https://github.com/AdguardTeam/Adguardhome) |
-| **[Vaultwarden](#bitwardenvaultwarden)** | Lightweight self-hosted Bitwarden-compatible password manager. | [Repository ↗︎](https://github.com/Dani-Garcia/Vaultwarden) |
-| **[WireGuard](#wireguard-vpn)** | Fast, secure VPN solution for remote access to your network and DNS. | [Repository ↗︎](https://www.wireguard.com/) |
-| **[Watchtower](#watchtower)** | Automatically monitors and updates running Docker containers with the latest images. | [Repository ↗︎](https://github.com/Containrrr/Watchtower) |
-| **[Filebrowser](#filebrowser)** | Lightweight web-based file manager to browse, upload, and organize files. | [Repository ↗︎](https://github.com/hurlenko/filebrowser-docker) |
-| **[Obsidian LiveSync](#obsidian-livesync)** | Self-hosted sync service for Obsidian, enabling encrypted note synchronization across devices. | [Repository ↗︎](https://github.com/vrtmrz/obsidian-livesync) |
-| **[Gluetun](#gluetun)** | VPN client container that routes traffic from other containers securely through supported VPN providers. | [Repository ↗︎](https://github.com/qdm12/gluetun) |
-| **[*arr Stack](#arr-stack)** | Suite of media automation tools for managing movies and TV shows. | — |
-| ↳ **[Overseerr](#arr-stack)** | Media request management interface for Radarr and Sonarr. | [Repository ↗︎](https://github.com/sct/overseerr) |
-| ↳ **[Radarr](#arr-stack)** | Automatically downloads and organizes movies. | [Repository ↗︎](https://github.com/Radarr/Radarr) |
-| ↳ **[Sonarr](#arr-stack)** | Automatically downloads and organizes TV shows. | [Repository ↗︎](https://github.com/Sonarr/Sonarr) |
-| ↳ **[Prowlarr](#arr-stack)** | Indexer manager and proxy for *arr apps. | [Repository ↗︎](https://github.com/Prowlarr/Prowlarr) |
-| ↳ **[Flaresolverr](#arr-stack)** | Handles Cloudflare protection for indexers that require JavaScript solving. | [Repository ↗︎](https://github.com/FlareSolverr/FlareSolverr) |
-| ↳ **[qBittorrent](#arr-stack)** | Torrent client used for downloading media, typically routed through Gluetun VPN. | [Repository ↗︎](https://github.com/linuxserver/docker-qbittorrent) |
-| **[Pi Temperature Alert Script](#receive-discord-alerts-for-raspberry-pi-overheating)** | Receive Discord Temperature Alert. | — |
-| **[Obsidian DB Backup Script](#obsidian-db-backup-script)** | Backup Obsidian DB to NAS. | — |
-| **[Docker Compose Files Backup Script](#docker-compose-files-backup-script)** | Backup Compose Files to Github | — |
+|----------|-------------|-------------|
+| **Nginx Proxy Manager** | Reverse proxy with SSL management and domain routing for internal services | [Repository ↗︎](https://github.com/Nginxproxymanager/Nginx-Proxy-Manager) |
+| **WireGuard** | Secure VPN for remote access to LAN and internal services | [Repository ↗︎](https://www.wireguard.com/) |
+| **Gluetun** | Routes selected container traffic through a VPN provider for privacy | [Repository ↗︎](https://github.com/qdm12/gluetun) |
 
+---
+
+## 🔐 Security & Privacy
+
+| Service | Description | Repository |
+|----------|-------------|-------------|
+| **Adguard Home** | Network-wide DNS filtering and ad blocking via DNS sinkhole | [Repository ↗︎](https://github.com/AdguardTeam/AdguardHome) |
+| **Vaultwarden** | Lightweight self-hosted password manager compatible with Bitwarden clients | [Repository ↗︎](https://github.com/dani-garcia/vaultwarden) |
+
+---
+
+## 📺 Media Automation (*arr Stack)
+
+| Service | Description | Repository |
+|----------|-------------|-------------|
+| **Overseerr** | Media request management interface for Radarr and Sonarr | [Repository ↗︎](https://github.com/sct/overseerr) |
+| **Radarr** | Automated movie downloading and organization | [Repository ↗︎](https://github.com/Radarr/Radarr) |
+| **Sonarr** | Automated TV show downloading and organization | [Repository ↗︎](https://github.com/Sonarr/Sonarr) |
+| **Prowlarr** | Indexer manager and proxy for *arr applications | [Repository ↗︎](https://github.com/Prowlarr/Prowlarr) |
+| **Flaresolverr** | Bypass tool for Cloudflare-protected indexers | [Repository ↗︎](https://github.com/FlareSolverr/FlareSolverr) |
+| **qBittorrent** | Torrent client used for downloading media (often routed via VPN) | [Repository ↗︎](https://github.com/linuxserver/docker-qbittorrent) |
+
+---
+
+## ⚙️ Infrastructure & Management
+
+| Service | Description | Repository |
+|----------|-------------|-------------|
+| **Portainer** | Web-based Docker management interface for containers, networks, and volumes | [Repository ↗︎](https://github.com/Portainer/Portainer) |
+| **Watchtower** | Automatically updates running Docker containers to latest images | [Repository ↗︎](https://github.com/Containrrr/Watchtower) |
+| **Filebrowser** | Lightweight web file manager for browsing and managing files on the Pi | [Repository ↗︎](https://github.com/hurlenko/filebrowser-docker) |
+
+---
+
+## 🧠 Productivity
+
+| Service | Description | Repository |
+|----------|-------------|-------------|
+| **Obsidian LiveSync** | Self-hosted encrypted sync service for Obsidian notes across devices | [Repository ↗︎](https://github.com/vrtmrz/obsidian-livesync) |
+
+## 🤖  Automation
+
+| Service | Description  |
+|----------|-------------|
+| **cpu_temp.sh** | Receive alert on discord if pi is overheating |
+| **backup-obsidian.sh** | Backup obsidian database to NAS |
+| **docker-backup.sh** | Backup docker compose files to github using git |
+
+---
+
+## 📦 Notes
+
+- All services run inside Docker containers for isolation and portability.
+- Most services are accessible internally via reverse proxy (Nginx Proxy Manager).
+- VPN routing is used selectively for privacy-sensitive services (via Gluetun).
+- Media automation services share a common storage structure to support hardlinking.
 
 ## Prerequisites
 * Enough storage for your needs (Example: I used a 128GB microSD card with 20% used for all my services).
@@ -545,7 +590,7 @@ volumes:
   qbittorrent_config:
 ```
 
-## Receive Discord Alerts for Raspberry Pi Overheating
+## cpu_temp.sh
 
 First create a new server in Discord where you will get your alerts.
 
@@ -629,7 +674,7 @@ WantedBy=timers.target
 
 ```sudo systemctl enable --now cpu-temp.timer```
 
-## Obsidian DB Backup Script
+## backup-obsidian.sh
 
 backup-obsidian.sh
 
@@ -774,7 +819,17 @@ Also add a .gitignore file in the containers dir
 !.gitignore
 ```
 
+## docker-backup.sh
+
+``` Bash
+#!/bin/bash
+cd ~/containers
+git add -A
+git diff --cached --quiet && echo "No changes, skipping commit." && exit 0
+git commit -m "Auto backup $(date '+%Y-%m-%d %H:%M')"
+git push origin main
 ### Systemd Timers
+```
 
 ```sudo nano /etc/systemd/system/docker-backup.service```
 

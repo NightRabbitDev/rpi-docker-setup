@@ -21,6 +21,10 @@ This section lists all services included in this Raspberry Pi setup.
 | **Nginx Proxy Manager** | Reverse proxy with SSL management and domain routing for internal services | [Repository ↗︎](https://github.com/Nginxproxymanager/Nginx-Proxy-Manager) |
 | **WireGuard** | Secure VPN for remote access to LAN and internal services | [Repository ↗︎](https://www.wireguard.com/) |
 | **Gluetun** | Routes selected container traffic through a VPN provider for privacy | [Repository ↗︎](https://github.com/qdm12/gluetun) |
+| **Openspeedtest** | Test speed test from and to your server | [Repository ↗︎](https://openspeedtest.com/selfhosted-speedtest) |
+| **Unifi Network Application** | Management dashboard for ubiquiti equipment |
+
+
 
 ---
 
@@ -53,6 +57,8 @@ This section lists all services included in this Raspberry Pi setup.
 | **Portainer** | Web-based Docker management interface for containers, networks, and volumes | [Repository ↗︎](https://github.com/Portainer/Portainer) |
 | **Watchtower** | Automatically updates running Docker containers to latest images | [Repository ↗︎](https://github.com/Containrrr/Watchtower) |
 | **Filebrowser** | Lightweight web file manager for browsing and managing files on the Pi | [Repository ↗︎](https://github.com/hurlenko/filebrowser-docker) |
+| **Homepage** | Customizable application dashboard | [Repository ↗︎](https://gethomepage.dev/) |
+
 
 ---
 

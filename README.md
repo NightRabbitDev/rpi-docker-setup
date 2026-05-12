@@ -761,7 +761,7 @@ WantedBy=timers.target
 
 ```sudo systemctl enable --now obsidian-backup.timer```
 
-## Docker Compose Files Backup Script
+## docker-backup.sh
 
 This part requires a little more work. You'll have to use git.
 
@@ -819,7 +819,8 @@ Also add a .gitignore file in the containers dir
 !.gitignore
 ```
 
-## docker-backup.sh
+
+docker-backup.sh
 
 ``` Bash
 #!/bin/bash

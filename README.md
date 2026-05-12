@@ -10,73 +10,56 @@ This repository documents my raspberry pi server setup, covering configuration s
 
 ## 🧩 Services Overview
 
-This section lists all services included in this Raspberry Pi setup.
+### 🌐 Networking & Access
 
----
+| Service | Purpose | Repo |
+|---|---|---|
+| [**Nginx Proxy Manager**](#nginx-proxy-manager) | Reverse proxy + SSL | [↗︎](https://github.com/Nginxproxymanager/Nginx-Proxy-Manager) |
+| [**WireGuard**](#wireguard-vpn) | Remote VPN access | [↗︎](https://www.wireguard.com/) |
+| [**Gluetun**](#gluetun) | VPN routing for containers | [↗︎](https://github.com/qdm12/gluetun) |
+| [**OpenSpeedTest**](#openspeedtest) | Network speed testing | [↗︎](https://openspeedtest.com/selfhosted-speedtest) |
+| [**UniFi Network Application**](#unifi-network-application) | Ubiquiti controller | — |
 
-## 🌐 Networking & Access
+### 🔐 Security & Privacy
 
-| Service | Description | Repository |
-|----------|-------------|-------------|
-| **Nginx Proxy Manager** | Reverse proxy with SSL management and domain routing for internal services | [Repository ↗︎](https://github.com/Nginxproxymanager/Nginx-Proxy-Manager) |
-| **WireGuard** | Secure VPN for remote access to LAN and internal services | [Repository ↗︎](https://www.wireguard.com/) |
-| **Gluetun** | Routes selected container traffic through a VPN provider for privacy | [Repository ↗︎](https://github.com/qdm12/gluetun) |
-| **Openspeedtest** | Test speed test from and to your server | [Repository ↗︎](https://openspeedtest.com/selfhosted-speedtest) |
-| **Unifi Network Application** | Management dashboard for ubiquiti equipment |
+| Service | Purpose | Repo |
+|---|---|---|
+| [**AdGuard Home**](#adguard-home) | DNS ad blocking | [↗︎](https://github.com/AdguardTeam/AdguardHome) |
+| [**Vaultwarden**](#bitwardenvaultwarden) | Self-hosted password manager | [↗︎](https://github.com/dani-garcia/vaultwarden) |
 
+### 📺 Media Automation
 
+| Service | Purpose | Repo |
+|---|---|---|
+| [**Overseerr**](#arr-stack) | Media requests | [↗︎](https://github.com/sct/overseerr) |
+| [**Radarr**](#arr-stack) | Movie automation | [↗︎](https://github.com/Radarr/Radarr) |
+| [**Sonarr**](#arr-stack) | TV automation | [↗︎](https://github.com/Sonarr/Sonarr) |
+| [**Prowlarr**](#arr-stack) | Indexer management | [↗︎](https://github.com/Prowlarr/Prowlarr) |
+| [**Flaresolverr**](#arr-stack) | Cloudflare bypass | [↗︎](https://github.com/FlareSolverr/FlareSolverr) |
+| [**qBittorrent**](#arr-stack) | Torrent client | [↗︎](https://github.com/linuxserver/docker-qbittorrent) |
 
----
+### ⚙️ Infrastructure & Management
 
-## 🔐 Security & Privacy
+| Service | Purpose | Repo |
+|---|---|---|
+| [**Portainer**](#portainer) | Docker management UI | [↗︎](https://github.com/Portainer/Portainer) |
+| [**Watchtower**](#watchtower) | Automatic updates | [↗︎](https://github.com/Containrrr/Watchtower) |
+| [**Filebrowser**](#filebrowser) | Web file manager | [↗︎](https://github.com/hurlenko/filebrowser-docker) |
+| [**Homepage**](#homepage) | Service dashboard | [↗︎](https://gethomepage.dev/) |
 
-| Service | Description | Repository |
-|----------|-------------|-------------|
-| **Adguard Home** | Network-wide DNS filtering and ad blocking via DNS sinkhole | [Repository ↗︎](https://github.com/AdguardTeam/AdguardHome) |
-| **Vaultwarden** | Lightweight self-hosted password manager compatible with Bitwarden clients | [Repository ↗︎](https://github.com/dani-garcia/vaultwarden) |
+### 🧠 Productivity
 
----
+| Service | Purpose | Repo |
+|---|---|---|
+| [**Obsidian LiveSync**](#obsidian-livesync) | Encrypted note sync | [↗︎](https://github.com/vrtmrz/obsidian-livesync) |
 
-## 📺 Media Automation (*arr Stack)
+### 🤖 Automation
 
-| Service | Description | Repository |
-|----------|-------------|-------------|
-| **Overseerr** | Media request management interface for Radarr and Sonarr | [Repository ↗︎](https://github.com/sct/overseerr) |
-| **Radarr** | Automated movie downloading and organization | [Repository ↗︎](https://github.com/Radarr/Radarr) |
-| **Sonarr** | Automated TV show downloading and organization | [Repository ↗︎](https://github.com/Sonarr/Sonarr) |
-| **Prowlarr** | Indexer manager and proxy for *arr applications | [Repository ↗︎](https://github.com/Prowlarr/Prowlarr) |
-| **Flaresolverr** | Bypass tool for Cloudflare-protected indexers | [Repository ↗︎](https://github.com/FlareSolverr/FlareSolverr) |
-| **qBittorrent** | Torrent client used for downloading media (often routed via VPN) | [Repository ↗︎](https://github.com/linuxserver/docker-qbittorrent) |
-
----
-
-## ⚙️ Infrastructure & Management
-
-| Service | Description | Repository |
-|----------|-------------|-------------|
-| **Portainer** | Web-based Docker management interface for containers, networks, and volumes | [Repository ↗︎](https://github.com/Portainer/Portainer) |
-| **Watchtower** | Automatically updates running Docker containers to latest images | [Repository ↗︎](https://github.com/Containrrr/Watchtower) |
-| **Filebrowser** | Lightweight web file manager for browsing and managing files on the Pi | [Repository ↗︎](https://github.com/hurlenko/filebrowser-docker) |
-| **Homepage** | Customizable application dashboard | [Repository ↗︎](https://gethomepage.dev/) |
-
-
----
-
-## 🧠 Productivity
-
-| Service | Description | Repository |
-|----------|-------------|-------------|
-| **Obsidian LiveSync** | Self-hosted encrypted sync service for Obsidian notes across devices | [Repository ↗︎](https://github.com/vrtmrz/obsidian-livesync) |
-
-## 🤖  Automation
-
-| Service | Description  |
-|----------|-------------|
-| **cpu_temp.sh** | Receive alert on discord if pi is overheating |
-| **backup-obsidian.sh** | Backup obsidian database to NAS |
-| **docker-backup.sh** | Backup docker compose files to github using git |
-
----
+| Script | Purpose |
+|---|---|
+| [**cpu_temp.sh**](#cpu_temp.sh) | Discord overheating alerts |
+| [**backup-obsidian.sh**](#backup-obsidian.sh) | Backup Obsidian DB to NAS |
+| [**docker-backup.sh**](#docker-backup.sh) | Backup compose files to GitHub |
 
 ## 📦 Notes
 

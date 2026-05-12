@@ -15,14 +15,12 @@ List of all services included in this Raspberry Pi setup, along with short descr
 |----------|--------------|-------------|
 | **[Nginx Proxy Manager](#nginx-proxy-manager)** | Manages reverse proxy configurations and SSL certificates through a simple web interface, allowing you to route domains to local services. | [Repository ↗︎](https://github.com/Nginxproxymanager/Nginx-Proxy-Manager) |
 | **[Portainer](#portainer)** | Web-based GUI for managing Docker containers, images, networks, and volumes. | [Repository ↗︎](https://github.com/Portainer/Portainer) |
-| **[Pi-hole](#pi-hole--cloudflared)** | Network-wide ad blocker acting as a DNS sinkhole to block unwanted domains. | [Repository ↗︎](https://github.com/Pi-Hole/Pi-Hole) |
-| ↳ **[Cloudflared](#pi-hole--cloudflared)** | Provides DNS over HTTPS (DoH) for encrypted DNS queries. | [Repository ↗︎](https://github.com/Cloudflare/Cloudflared) |
+| **[Adguard Home](#adguard-home)** | Network-wide ad blocker acting as a DNS sinkhole to block unwanted domains. | [Repository ↗︎](https://github.com/AdguardTeam/Adguardhome) |
 | **[Vaultwarden](#bitwardenvaultwarden)** | Lightweight self-hosted Bitwarden-compatible password manager. | [Repository ↗︎](https://github.com/Dani-Garcia/Vaultwarden) |
 | **[WireGuard](#wireguard-vpn)** | Fast, secure VPN solution for remote access to your network and DNS. | [Repository ↗︎](https://www.wireguard.com/) |
 | **[Watchtower](#watchtower)** | Automatically monitors and updates running Docker containers with the latest images. | [Repository ↗︎](https://github.com/Containrrr/Watchtower) |
 | **[Filebrowser](#filebrowser)** | Lightweight web-based file manager to browse, upload, and organize files. | [Repository ↗︎](https://github.com/hurlenko/filebrowser-docker) |
 | **[Obsidian LiveSync](#obsidian-livesync)** | Self-hosted sync service for Obsidian, enabling encrypted note synchronization across devices. | [Repository ↗︎](https://github.com/vrtmrz/obsidian-livesync) |
-| **[Grafana / Pi Monitoring](#grafana)** | Visualizes system and Docker metrics via Prometheus and Grafana dashboards. | [Repository ↗︎](https://github.com/oijkn/Docker-Raspberry-PI-Monitoring) |
 | **[Gluetun](#gluetun)** | VPN client container that routes traffic from other containers securely through supported VPN providers. | [Repository ↗︎](https://github.com/qdm12/gluetun) |
 | **[*arr Stack](#arr-stack)** | Suite of media automation tools for managing movies and TV shows. | — |
 | ↳ **[Overseerr](#arr-stack)** | Media request management interface for Radarr and Sonarr. | [Repository ↗︎](https://github.com/sct/overseerr) |
@@ -31,10 +29,9 @@ List of all services included in this Raspberry Pi setup, along with short descr
 | ↳ **[Prowlarr](#arr-stack)** | Indexer manager and proxy for *arr apps. | [Repository ↗︎](https://github.com/Prowlarr/Prowlarr) |
 | ↳ **[Flaresolverr](#arr-stack)** | Handles Cloudflare protection for indexers that require JavaScript solving. | [Repository ↗︎](https://github.com/FlareSolverr/FlareSolverr) |
 | ↳ **[qBittorrent](#arr-stack)** | Torrent client used for downloading media, typically routed through Gluetun VPN. | [Repository ↗︎](https://github.com/linuxserver/docker-qbittorrent) |
-| ↳ **[Maintainerr](#arr-stack)** | Janitor for your stack. | [Repository ↗︎](https://github.com/Maintainerr/Maintainerr) |
-| **[Pi Temperature Alert](#receive-discord-alerts-for-raspberry-pi-overheating)** | Receive Discord Temperature Alert. | — |
-
-
+| **[Pi Temperature Alert Script](#receive-discord-alerts-for-raspberry-pi-overheating)** | Receive Discord Temperature Alert. | — |
+| **[Obsidian DB Backup Script](#obsidian-db-backup-script)** | Backup Obsidian DB to NAS. | — |
+| **[Docker Compose Files Backup Script](#docker-compose-files-backup-script)** | Backup Compose Files to Github | — |
 
 
 ## Prerequisites
@@ -89,27 +86,23 @@ NGINX Proxy Manager let’s you manage domains and control which application eac
 ``` Bash
 services:
   nginx_proxy_manager:
-    image: 'jc21/nginx-proxy-manager:latest'
+    image: jc21/nginx-proxy-manager:latest
     container_name: nginx_proxy_manager
     ports:
-      - '80:80'
-      - '81:81'
-      - '443:443'
+      - "80:80"
+      - "81:81"
+      - "443:443"
     volumes:
       - ./config.json:/app/config/production.json
       - ./data:/data
       - ./letsencrypt:/etc/letsencrypt
-    restart: unless-stopped
     networks:
-      proxy:
-        ipv4_address: 172.20.0.2
+      - proxy
+    restart: unless-stopped
 
 networks:
   proxy:
     name: proxy
-    ipam:
-      config:
-        - subnet: 172.20.0.0/16
 ```
 
 Below is how you run all the docker compose configuration files:
@@ -162,29 +155,27 @@ Portainer is a GUI tool for managing Docker containers.
 ##### Portainer Compose File
 ``` Bash
 services:
-   portainer:
-    container_name: portainer
+  portainer:
     image: portainer/portainer-ce:latest
-    ports:
-      - 9443:9443
+    container_name: portainer
     volumes:
       - data:/data
       - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - "9443:9443"
     networks:
-      portainer:
-        ipv4_address: 172.30.0.2
-      proxy:
-        ipv4_address: 172.20.0.3
+      - portainer
+      - proxy
     restart: unless-stopped
+
+volumes:
+  data:
 
 networks:
   portainer:
     name: portainer
-    ipam:
-      config:
-        - subnet: 172.30.0.0/16
   proxy:
-     external: true
+    external: true
 ```
 
 Access Portainer at ```https://<raspberrypi-ip>:9443```
@@ -196,28 +187,25 @@ Bitwarden is a password manager and vaultwarden is a more lightweight option tha
 services:
   vaultwarden:
     image: vaultwarden/server:latest
-    container_name: vaultwarden
+    container_name: bitwarden
     environment:
       - WEBSOCKET_ENABLED=true
     volumes:
       - ./data:/data
     ports:
-      - 8080:80
+      - "8085:80"
     restart: unless-stopped
     networks:
-      bitwarden:
-        ipv4_address: 172.70.0.2
-      proxy:
-        ipv4_address: 172.20.0.5
+      - bitwarden
+      - proxy
 
 networks:
   bitwarden:
     name: bitwarden
-    ipam:
-      config:
-        - subnet: 172.70.0.0/16
+    internal: true
+
   proxy:
-    external: true                             
+    external: true                           
 ```
 
 Once the container Is up you should be able to reach bitwarden through ```http://<raspberrypi-ip>:8080```, although you won't be able to create an account or use it just yet. Bitwarden needs to go through HTTPS otherwise errors will occur. There are multiple ways of doing this, one way is through a reverse proxy which I found to be the easiest, I use NGINX Proxy Manager for this.
@@ -237,35 +225,27 @@ services:
       - PUID=1000
       - PGID=1000
       - TZ=Europe/Stockholm
-      - SERVERURL=auto 
+      - SERVERURL=auto
       - SERVERPORT=51820
-      - PEERS=3                                #Amount of available peers
-      - PEERDNS=172.20.0.4                     #IP of pihole container
+      - PEERS=3
+      - PEERDNS=192.168.1.10
       - INTERNAL_SUBNET=10.13.13.0
-      - ALLOWEDIPS=0.0.0.0/0                   #Allows all IPs to connect to VPN
+      - ALLOWEDIPS=0.0.0.0/0
     volumes:
-      - /home/pi/wireguard/config:/config
+      - ./config:/config
       - /lib/modules:/lib/modules
     ports:
-      - 51820:51820/udp
+      - "51820:51820/udp"
     sysctls:
       - net.ipv4.conf.all.src_valid_mark=1
       - net.ipv4.ip_forward=1
     restart: unless-stopped
     networks:
-      wireguard:
-        ipv4_address: 172.40.0.2
-      proxy:
-        ipv4_address: 172.20.0.7
+      - wireguard
 
 networks:
   wireguard:
     name: wireguard
-    ipam:
-      config:
-        - subnet: 172.40.0.0/16
-  proxy:
-     external: true
 ```
 The server side VPN is created, for the client side run the command below to get a QR code of the configuration for the client.
 ``` Bash
@@ -279,27 +259,27 @@ Automatically monitors and updates your running Docker containers to keep them u
 ``` Bash
 services:
   watchtower:
-    image: containrrr/watchtower:latest
+    image: nickfedor/watchtower:latest
     container_name: watchtower
     environment:
       TZ: Europe/Stockholm
-      #WATCHTOWER_ROLLING_RESTART: 'true'
-      #WATCHTOWER_MONITOR_ONLY: 'true'
-      WATCHTOWER_SCHEDULE: '0 0 0 * * 0'           #Cron expression (Set at 12:00 AM, only on Sunday)
-      WATCHTOWER_CLEANUP: 'true'
+      WATCHTOWER_SCHEDULE: "0 0 0 * * 0"
+      WATCHTOWER_CLEANUP: "true"
+      WATCHTOWER_INCLUDE_RESTARTING: "true"
+      WATCHTOWER_DISABLE_CONTAINERS: watchtower,gluetun
+      WATCHTOWER_HTTP_API_METRICS: "true"
+    ports:
+      - "86:8080"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-    restart: unless-stopped
     networks:
-      watchtower:
-        ipv4_address: 172.120.0.2
+      - watchtower
+    restart: unless-stopped
 
 networks:
   watchtower:
     name: watchtower
-    ipam:
-      config:
-        - subnet: 172.120.0.0/16
+    internal: true
 ```
 
 ## Filebrowser
@@ -307,31 +287,25 @@ Lightweight web-based file manager that lets you browse, upload, and manage file
 ```Bash
 services:
   filebrowser:
-    container_name: filebrowser
     image: hurlenko/filebrowser
-    user: "${UID}:${GID}"
-    ports:
-      - 444:8080
+    container_name: filebrowser
+    environment:
+      - FB_BASE_URL=/filebrowser
     volumes:
       - ./DATA_DIR:/data
       - ./CONFIG_DIR:/config
-    environment:
-      - FB_BASEURL=/filebrowser
+    ports:
+      - "444:8080"
     networks:
-      filebrowser:
-        ipv4_address: 172.110.0.2
-      proxy:
-        ipv4_address: 172.20.0.6
+      - filebrowser
+      - proxy
     restart: unless-stopped
 
 networks:
   filebrowser:
     name: filebrowser
-    ipam:
-      config:
-        - subnet: 172.110.0.0/16
   proxy:
-     external: true
+    external: true
 ```
 
 Should either have a default login or you can check logs to see if it generates a temporary password. ```docker logs -f filebrowser```
@@ -342,34 +316,31 @@ Obsidian is a note-taking app. Obsidian LiveSync is a self-hosted synchronizatio
 
 ```Bash
 services:
-   couchdb-obsidian-livesync:
-    container_name: obsidian-livesync
+  couchdb-obsidian-livesync:
     image: couchdb:latest
-    secrets:
-      - couchdb_password
+    container_name: obsidian-livesync
     environment:
       - TZ=Europe/Stockholm
       - COUCHDB_USER=admin
-      - COUCHDB_PASSWORD_FILE=/run/secrets/couchdb_password
+      - COUCHDB_PASSWORD=/run/secrets/couchdb_password
+    secrets:
+      - couchdb_password
     volumes:
       - ./data:/opt/couchdb/data
       - ./etc:/opt/couchdb/etc/local.d
     ports:
       - "5984:5984"
     networks:
-      obsidian:
-        ipv4_address: 172.60.0.2
+      - obsidian
     restart: unless-stopped
-  
+
 networks:
   obsidian:
     name: obsidian
-    ipam:
-      config:
-        - subnet: 172.60.0.0/16
+
 secrets:
   couchdb_password:
-   file: ./secrets/couchdb_password.txt
+    file: ./secrets/couchdb_password.txt
 ```
 
 Next you will have to setup the database, I would recommend following this [Guide](https://www.reddit.com/r/selfhosted/comments/1eo7knj/guide_obsidian_with_free_selfhosted_instant_sync/)
@@ -382,42 +353,39 @@ A secure VPN client container that routes traffic from other containers (like to
 services:
   gluetun:
     image: qmcgaw/gluetun:latest
-    secrets:
-      - vpn_user
-      - vpn_password
     container_name: gluetun
     cap_add:
       - NET_ADMIN
     devices:
       - /dev/net/tun:/dev/net/tun
+    secrets:
+      - vpn_user
+      - vpn_password
     volumes:
       - ./data:/gluetun
     environment:
       - TZ=Europe/Stockholm
-      - VPN_SERVICE_PROVIDER=                                     #VPN Provider, check Gluetun documentation
+      - VPN_SERVICE_PROVIDER=private internet access
       - VPN_TYPE=openvpn
       - OPENVPN_USER_FILE=/run/secrets/vpn_user
       - OPENVPN_PASSWORD_FILE=/run/secrets/vpn_password
-      - SERVER_REGIONS=                                           #Which region/country you want VPN to connect
-      - FIREWALL_OUTBOUND_SUBNETS=172.100.0.0/24,192.168.1.0/24   #Needed to allow one of these for *arr stack to work, either container LAN or actual LAN.
+      - SERVER_REGIONS=Switzerland
+      - FIREWALL_OUTBOUND_SUBNETS=192.168.1.0/24
     ports:
-      - 8081:8081                                                 #For qbittorrent
-      - 6881:6881                                                 #For qbittorrent
-      - 6881:6881/udp
-      - 9696:9696                                                 #For Prowlarr
-      - 8191:8191                                                 #For verr
+      - "8081:8081"
+      - "6881:6881"
+      - "6881:6881/udp"
+      - "9696:9696"
+      - "8191:8191"
+      - "8000:8000"
     restart: unless-stopped
     networks:
-      gluetun:
-        ipv4_address: 172.90.0.2
+      - gluetun
 
 networks:
   gluetun:
-    driver: bridge
     name: gluetun
-    ipam:
-      config:
-        - subnet: 172.90.0.0/16
+
 secrets:
   vpn_user:
     file: ./secrets/vpn_user.txt
@@ -447,20 +415,20 @@ For example your torrent client downloads a movie to data/torrents/radarr, radar
 The main importance when making your own file structure is that all containers reference the same root path which is data in this case. This is required for hardlinking to function.
 
 ```
-data
-├── Downloads
+nas
+├── downloads
 │  ├── radarr
 │  ├── tv-sonarr
-├── Temporary TV Shows & Anime
-└── Temporary Movies
+├── tv-shows
+└── movies
 ```
 #### Verify Hardlinking
 
-You can verify hardlinking by checking linkcount
+You can verify hardlinking by checking linkcount on the files, should be more than 1.
 
 ```ls -l```
 
-If you want more confirmation you can compare the inode number when writing below command on both locations of the file, same inode number = hardlinked.
+If you want more confirmation you can compare the inode number on both files in downloads directory and in the finished plex diretory which in above case would be movies or tv-shows. Use command on both locations of the file and compare inode number. Same inode number = hardlinked.
 
 ```stat filename.mkv```
 
@@ -476,13 +444,13 @@ services:
       - TZ=Europe/Stockholm
     volumes:
       - radarr_config:/config
-      - /mnt/BigBoi/data:/data
+      - /mnt/nas:/nas
     ports:
-      - 7878:7878
-    restart: unless-stopped
+      - "7878:7878"
     networks:
-      arr:
-        ipv4_address: 172.100.0.2
+      - arr
+      - proxy
+    restart: unless-stopped
 
   sonarr:
     image: lscr.io/linuxserver/sonarr:latest
@@ -494,14 +462,14 @@ services:
       - TZ=Europe/Stockholm
     volumes:
       - sonarr_config:/config
-      - /mnt/BigBoi/data:/data
+      - /mnt/nas:/nas
     ports:
-      - 8989:8989
-    restart: unless-stopped
+      - "8989:8989"
     networks:
-      arr:
-        ipv4_address: 172.100.0.3
-    
+      - arr
+      - proxy
+    restart: unless-stopped
+
   qbittorrent:
     image: lscr.io/linuxserver/qbittorrent:latest
     container_name: qbittorrent
@@ -514,32 +482,27 @@ services:
       - TORRENTING_PORT=6881
     volumes:
       - qbittorrent_config:/config
-      - /mnt/BigBoi/data/Downloads:/data/Downloads
-    healthcheck:
-      test: ping -c 2 8.8.8.8 || exit 1
-      interval: 60s
-      timeout: 5s
-      retries: 2
-      start_period: 60s
-    restart: on-failure
+      - /mnt/nas/downloads:/nas/downloads
     network_mode: "container:gluetun"
-    
-  overseerr:
-    image: lscr.io/linuxserver/overseerr:latest
-    container_name: overseerr
+    restart: always
+
+  seerr:
+    image: ghcr.io/seerr-team/seerr:latest
+    container_name: seerr
     environment:
-      - PUID=1000
-      - PGID=1000
-      - UMASK=022
+      - LOG_LEVEL=debug
       - TZ=Europe/Stockholm
     volumes:
-      - overseerr_config:/config
+      - seerr_config:/app/config
     ports:
-      - 5055:5055
-    restart: unless-stopped
+      - "5055:5055"
+    dns:
+      - 1.1.1.1
+      - 8.8.8.8
     networks:
-      arr:
-        ipv4_address: 172.100.0.4
+      - arr
+      - proxy
+    restart: unless-stopped
 
   prowlarr:
     image: lscr.io/linuxserver/prowlarr:latest
@@ -551,15 +514,9 @@ services:
       - TZ=Europe/Stockholm
     volumes:
       - prowlarr_config:/config
-    healthcheck:
-      test: ping -c 2 8.8.8.8 || exit 1
-      interval: 60s
-      timeout: 50s
-      retries: 2
-      start_period: 60s
-    restart: on-failure
     network_mode: "container:gluetun"
-      
+    restart: always
+
   flaresolverr:
     image: flaresolverr/flaresolverr:latest
     container_name: flaresolverr
@@ -570,46 +527,19 @@ services:
       - TZ=Europe/Stockholm
     volumes:
       - flaresolverr_config:/config
-    healthcheck:
-      test: ["CMD-SHELL", "curl -s --head --fail http://www.google.com || exit 1"]
-      interval: 60s
-      timeout: 5s
-      retries: 2
-      start_period: 60s
-    restart: on-failure
     network_mode: "container:gluetun"
-
-  maintainerr:
-    image: ghcr.io/maintainerr/maintainerr:latest
-    container_name: maintainerr
-    volumes:
-      - type: bind
-        source: ./data
-        target: /opt/data
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - UMASK=022
-      - TZ=Europe/Stockholm
-    ports:
-      - 6246:6246
-    restart: unless-stopped
-    networks:
-      arr:
-        ipv4_address: 172.100.0.5
+    restart: always
 
 networks:
   arr:
-    driver: bridge
     name: arr
-    ipam:
-      config:
-        - subnet: 172.100.0.0/16
+  proxy:
+    external: true
 
 volumes:
   radarr_config:
   sonarr_config:
-  overseerr_config:
+  seerr_config:
   prowlarr_config:
   flaresolverr_config:
   qbittorrent_config:
@@ -647,7 +577,7 @@ if [[ ! -f "$STATE_FILE" ]]; then
   echo "$pi_temp" > "$STATE_FILE"
 
   curl -H "Content-Type: application/json" -X POST \
-    -d "{\"content\":\" ALERT! ${this_pi} CPU temp reached ${pi_temp}°C\"}" \
+    -d "{\"content\":\"🚨 ALERT! ${this_pi} CPU temp reached ${pi_temp}°C\"}" \
     "$discord_pi_webhook"
   exit 0
 fi
@@ -671,30 +601,211 @@ Now to automate this I used systemd timers and used this as a reference on what 
 
 Create a pialert.service and pialert.timer file at /etc/systemd/system
 
-pialert.service
-
-``` Bash
-Description="Runs pi alert script"
-Requires=cpu_temp.sh
-
-[Service]
-Type=simple
-ExecStart=/home/admin/pi-alert/cpu_temp.sh
-User=admin                                  #change this to your user
-```
-
-pialert.timer
+cpu-temp.service
 
 ``` Bash
 [Unit]
-Description="Timer for the pialert.service"
+Description=CPU Temperature Monitor
+
+[Service]
+Type=oneshot
+ExecStart=/home/admin/scripts/cpu_temp.sh
+```
+
+cpu-temp.timer
+
+``` Bash
+[Unit]
+Description=Run CPU temp monitor every 5 minutes
 
 [Timer]
-Unit=pialert.service
 OnBootSec=5min
-OnUnitActiveSec=10min                       #how often it should run
+OnUnitActiveSec=10min
+Persistent=true
 
 [Install]
 WantedBy=timers.target
 ```
+
+```sudo systemctl enable --now cpu-temp.timer```
+
+## Obsidian DB Backup Script
+
+backup-obsidian.sh
+
+``` Bash
+#!/bin/bash
+
+# ── Config ────────────────────────────────────────────────────────────────────
+COMPOSE_DIR="/home/admin/containers/obsidian-livesync"
+BACKUP_ROOT="/mnt/nas/backups/obsidian-livesync"
+RETENTION_DAYS=30
+LOG_FILE="/var/log/obsidian-backup.log"
+# ─────────────────────────────────────────────────────────────────────────────
+
+TIMESTAMP=$(date +"%Y-%m-%d_%H-%M")
+BACKUP_DIR="$BACKUP_ROOT/$TIMESTAMP"
+
+log() {
+  echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" | tee -a "$LOG_FILE"
+}
+
+log "──────────────────────────────────────────"
+log "Starting obsidian-livesync backup"
+
+# Stop the container
+log "Stopping container..."
+docker compose -f "$COMPOSE_DIR/docker-compose.yml" stop
+if [ $? -ne 0 ]; then
+  log "ERROR: Failed to stop container. Aborting backup."
+  exit 1
+fi
+
+# Sync data and config
+log "Rsyncing to $BACKUP_DIR ..."
+mkdir -p "$BACKUP_DIR/data" "$BACKUP_DIR/etc"
+rsync -a --delete "$COMPOSE_DIR/data/" "$BACKUP_DIR/data/"
+DATA_STATUS=$?
+rsync -a --delete "$COMPOSE_DIR/etc/" "$BACKUP_DIR/etc/"
+ETC_STATUS=$?
+
+RSYNC_STATUS=$(( DATA_STATUS + ETC_STATUS ))
+
+# Always restart the container, even if rsync failed
+log "Restarting container..."
+docker compose -f "$COMPOSE_DIR/docker-compose.yml" start
+
+if [ $RSYNC_STATUS -ne 0 ]; then
+  log "ERROR: rsync failed with exit code $RSYNC_STATUS."
+  exit 1
+fi
+
+log "Backup complete → $BACKUP_DIR"
+
+# Prune backups older than retention period
+log "Pruning backups older than $RETENTION_DAYS days..."
+find "$BACKUP_ROOT" -maxdepth 1 -type d -mtime +$RETENTION_DAYS -exec rm -rf {} +
+
+log "Done."
+```
+
+```sudo nano /etc/systemd/system/obsidian-backup.service```
+
+``` Bash
+[Unit]
+Description=Obsidian LiveSync Backup
+
+[Service]
+Type=oneshot
+ExecStart=/home/admin/scripts/backup-obsidian.sh
+```
+
+```sudo nano /etc/systemd/system/obsidian-backup.timer```
+
+``` Bash
+[Unit]
+Description=Nightly Obsidian Backup
+
+[Timer]
+OnCalendar=*-*-* 03:00:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+```
+
+```sudo systemctl enable --now obsidian-backup.timer```
+
+## Docker Compose Files Backup Script
+
+This part requires a little more work. You'll have to use git.
+
+Install
+```apt-get install git```
+
+Generate SSH Key
+```ssh-keygen -t ed25519 -C "rpi-backup"```
+
+Show SSH Key
+"```cat ~/.ssh/id_ed25519.pub"```
+
+Add it to GitHub, [Here](https://github.com/settings/keys) 
+
+Test It
+```ssh -T git@github.com"```
+
+Here it depends if you already have an existing github repo or wants to create one. I already have one so my flow looks like this:
+
+``` Bash
+cd ~/containers
+git init
+git remote add origin git@github.com:github-username/github-repo.git
+git add -A
+git commit -m "New Raspberry Pi rebuild"
+git branch -M main
+git push -u origin main --force"
+```
+Also add a .gitignore file in the containers dir
+
+``` Bash
+# Ignore everything by default
+*
+
+# Allow folders
+!*/
+
+# Allow docker compose files
+!*/docker-compose.yml
+!*/docker-compose.yaml
+
+# Ignore all env files
+*.env
+# Ignore all txt files
+*.txt
+# Ignore Docker volumes / letsencrypt / DATA_DIR folders
+*/letsencrypt/*
+*/DATA_DIR/*
+*/data
+*/work
+# Ignore raw YAML configs (we will push only sanitized examples)
+*.yaml
+
+# Allow root files
+!.gitignore
+```
+
+### Systemd Timers
+
+```sudo nano /etc/systemd/system/docker-backup.service```
+
+``` Bash
+[Unit]
+Description=Git backup of Docker configs
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/admin/containers
+ExecStart=/home/admin/scripts/docker-backup.sh
+
+sudo nano /etc/systemd/system/docker-backup.timer
+
+[Unit]
+Description=Hourly Docker Config Backup
+
+[Timer]
+OnCalendar=Sun *-*-* 03:30:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+```
+
+```sudo systemctl enable --now docker-backup.timer```
+
+
+## Random
+
+/etc/fstab
+
+NASIP:/volume1/NAS  /mnt/nas  nfs  defaults,_netdev,x-systemd.automount  0  0
 

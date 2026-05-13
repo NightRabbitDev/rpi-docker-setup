@@ -1,123 +1,173 @@
-# <img src="https://github.com/user-attachments/assets/39d7950d-8c68-4845-a20c-97ba42d940cd" width="60" alt="logo">Raspberry Pi Home Server with Docker
+# Raspberry Pi Home Server with Docker
 
 ![Docker](https://img.shields.io/badge/Docker-Ready-blue?logo=docker)
 ![Raspberry Pi](https://img.shields.io/badge/Raspberry%20Pi-4B-red?logo=raspberrypi)
 ![Maintained](https://img.shields.io/badge/Maintained-Yes-brightgreen)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
-This repository documents my raspberry pi server setup, covering configuration steps, docker compose files, and other useful resources. 
+This repository documents my Raspberry Pi home server setup, including Docker Compose files, service configurations, backup scripts, and notes from my own deployment.
 
+The goal of this project is to keep everything self-hosted, easy to rebuild, and simple to maintain.
 
-## 🧩 Services Overview
+---
 
-### 🌐 Networking & Access
+# Services Overview
 
-| Service | Purpose | Repo |
-|---|---|---|
-| [**Nginx Proxy Manager**](#nginx-proxy-manager) | Reverse proxy + SSL | [↗︎](https://github.com/Nginxproxymanager/Nginx-Proxy-Manager) |
-| [**WireGuard**](#wireguard-vpn) | Remote VPN access | [↗︎](https://www.wireguard.com/) |
-| [**Gluetun**](#gluetun) | VPN routing for containers | [↗︎](https://github.com/qdm12/gluetun) |
-| [**OpenSpeedTest**](#openspeedtest) | Network speed testing | [↗︎](https://openspeedtest.com/selfhosted-speedtest) |
-| [**UniFi Network Application**](#unifi-network-application) | Ubiquiti controller | — |
+## Networking & Access
 
-### 🔐 Security & Privacy
+| Service                                                     | Purpose                             | Repo                                                           |
+| ----------------------------------------------------------- | ----------------------------------- | -------------------------------------------------------------- |
+| [**Nginx Proxy Manager**](#nginx-proxy-manager)             | Reverse proxy with SSL support      | [↗︎](https://github.com/Nginxproxymanager/Nginx-Proxy-Manager) |
+| [**WireGuard**](#wireguard-vpn)                             | Secure remote access to the LAN     | [↗︎](https://www.wireguard.com/)                               |
+| [**Gluetun**](#gluetun)                                     | VPN routing for selected containers | [↗︎](https://github.com/qdm12/gluetun)                         |
+| [**OpenSpeedTest**](#openspeedtest)                         | Local network speed testing         | [↗︎](https://openspeedtest.com/selfhosted-speedtest)           |
+| [**UniFi Network Application**](#unifi-network-application) | UniFi controller                    | —                                                              |
 
-| Service | Purpose | Repo |
-|---|---|---|
-| [**AdGuard Home**](#adguard-home) | DNS ad blocking | [↗︎](https://github.com/AdguardTeam/AdguardHome) |
-| [**Vaultwarden**](#bitwardenvaultwarden) | Self-hosted password manager | [↗︎](https://github.com/dani-garcia/vaultwarden) |
+## Security & Privacy
 
-### 📺 Media Automation
+| Service                                    | Purpose                                  | Repo                                             |
+| ------------------------------------------ | ---------------------------------------- | ------------------------------------------------ |
+| [**AdGuard Home**](#adguard-home)          | DNS-level ad and telemetry blocking      | [↗︎](https://github.com/AdguardTeam/AdguardHome) |
+| [**Vaultwarden**](#vaultwardenvaultwarden) | Lightweight self-hosted password manager | [↗︎](https://github.com/dani-garcia/vaultwarden) |
 
-| Service | Purpose | Repo |
-|---|---|---|
-| [**Overseerr**](#arr-stack) | Media requests | [↗︎](https://github.com/sct/overseerr) |
-| [**Radarr**](#arr-stack) | Movie automation | [↗︎](https://github.com/Radarr/Radarr) |
-| [**Sonarr**](#arr-stack) | TV automation | [↗︎](https://github.com/Sonarr/Sonarr) |
-| [**Prowlarr**](#arr-stack) | Indexer management | [↗︎](https://github.com/Prowlarr/Prowlarr) |
-| [**Flaresolverr**](#arr-stack) | Cloudflare bypass | [↗︎](https://github.com/FlareSolverr/FlareSolverr) |
-| [**qBittorrent**](#arr-stack) | Torrent client | [↗︎](https://github.com/linuxserver/docker-qbittorrent) |
+## Media Automation
 
-### ⚙️ Infrastructure & Management
+| Service                        | Purpose                       | Repo                                                    |
+| ------------------------------ | ----------------------------- | ------------------------------------------------------- |
+| [**Overseerr**](#arr-stack)    | Media request management      | [↗︎](https://github.com/sct/overseerr)                  |
+| [**Radarr**](#arr-stack)       | Movie automation              | [↗︎](https://github.com/Radarr/Radarr)                  |
+| [**Sonarr**](#arr-stack)       | TV show automation            | [↗︎](https://github.com/Sonarr/Sonarr)                  |
+| [**Prowlarr**](#arr-stack)     | Indexer management            | [↗︎](https://github.com/Prowlarr/Prowlarr)              |
+| [**Flaresolverr**](#arr-stack) | Cloudflare challenge handling | [↗︎](https://github.com/FlareSolverr/FlareSolverr)      |
+| [**qBittorrent**](#arr-stack)  | Torrent client                | [↗︎](https://github.com/linuxserver/docker-qbittorrent) |
 
-| Service | Purpose | Repo |
-|---|---|---|
-| [**Portainer**](#portainer) | Docker management UI | [↗︎](https://github.com/Portainer/Portainer) |
-| [**Watchtower**](#watchtower) | Automatic updates | [↗︎](https://github.com/Containrrr/Watchtower) |
-| [**Filebrowser**](#filebrowser) | Web file manager | [↗︎](https://github.com/hurlenko/filebrowser-docker) |
-| [**Homepage**](#homepage) | Service dashboard | [↗︎](https://gethomepage.dev/) |
+## Infrastructure & Management
 
-### 🧠 Productivity
+| Service                         | Purpose                     | Repo                                                 |
+| ------------------------------- | --------------------------- | ---------------------------------------------------- |
+| [**Portainer**](#portainer)     | Docker management UI        | [↗︎](https://github.com/Portainer/Portainer)         |
+| [**Watchtower**](#watchtower)   | Automatic container updates | [↗︎](https://github.com/Containrrr/Watchtower)       |
+| [**Filebrowser**](#filebrowser) | Web-based file manager      | [↗︎](https://github.com/hurlenko/filebrowser-docker) |
+| [**Homepage**](#homepage)       | Service dashboard           | [↗︎](https://gethomepage.dev/)                       |
 
-| Service | Purpose | Repo |
-|---|---|---|
-| [**Obsidian LiveSync**](#obsidian-livesync) | Encrypted note sync | [↗︎](https://github.com/vrtmrz/obsidian-livesync) |
+## Productivity
 
-### 🤖 Automation
+| Service                                     | Purpose                | Repo                                              |
+| ------------------------------------------- | ---------------------- | ------------------------------------------------- |
+| [**Obsidian LiveSync**](#obsidian-livesync) | Encrypted note syncing | [↗︎](https://github.com/vrtmrz/obsidian-livesync) |
 
-| Script | Purpose |
-|---|---|
-| [**cpu_temp.sh**](#cpu_temp.sh) | Discord overheating alerts |
-| [**backup-obsidian.sh**](#backup-obsidian.sh) | Backup Obsidian DB to NAS |
-| [**docker-backup.sh**](#docker-backup.sh) | Backup compose files to GitHub |
+## Automation
 
-## 📦 Notes
+| Script                                       | Purpose                                               |
+| -------------------------------------------- | ----------------------------------------------------- |
+| [**cpu_temp.sh**](#cpu_tempsh)               | Sends Discord alerts if CPU temperature gets too high |
+| [**backup-obsidian.sh**](#backup-obsidiansh) | Backs up Obsidian LiveSync data to NAS                |
+| [**docker-backup.sh**](#docker-backupsh)     | Pushes Docker configs to GitHub                       |
 
-- All services run inside Docker containers for isolation and portability.
-- Most services are accessible internally via reverse proxy (Nginx Proxy Manager).
-- VPN routing is used selectively for privacy-sensitive services (via Gluetun).
-- Media automation services share a common storage structure to support hardlinking.
+---
 
-## Prerequisites
-* Enough storage for your needs (Example: I used a 128GB microSD card with 20% used for all my services).
-* Raspberry Pi with an installed and updated OS (I used [Raspberry Pi OS](https://www.raspberrypi.com/software/) 64-bit, based on Debian, but any OS should work as long as you know the commands for it).
-* Static IP: Recommended for consistent access.
+# Notes
 
+* All services run inside Docker containers for portability and easier management.
+* Most services are available internally through Nginx Proxy Manager.
+* Privacy-sensitive services can be routed through Gluetun.
+* Media services share the same storage structure to support hardlinking.
 
-## Installing Docker
-To get started, install ```docker``` and ```docker-compose```.
+---
 
-Docker is a tool that simplifies application deployment in lightweight containers. Containers share the same OS resources, so they’re more efficient than virtual machines.
+# Prerequisites
 
-Docker compose is a tool that simplifies the setup of multiple docker containers through YAML configuration files.
+* A Raspberry Pi with an installed and updated OS
+* A static IP address recommended for easier access & configuration
 
-   Note: Installation varies by OS. Refer to [Docker's Official Site](https://docs.docker.com/desktop/install/debian/) for detailed instructions on your specific OS.
-   
-#### Docker on Debian 
-``` Bash
+I use Raspberry Pi OS 64-bit based on Debian, but most Linux distributions should work with small adjustments.
+
+---
+
+# Installing Docker
+
+Docker allows applications to run inside lightweight containers, making deployments easier to manage and rebuild.
+
+Docker Compose lets you manage multiple containers using a single YAML file.
+
+Installation steps vary depending on your OS. Refer to Docker's official documentation for detailed instructions.
+
+## Docker on Debian
+
+```bash
 curl -sSl https://get.docker.com | sh
 ```
-To avoid running Docker commands as root, add your user to the Docker group:
-``` Bash
-sudo usermod -aG docker ${whoami}
-```
-You may need to log out and back in for this to take effect.
 
-Verify that Docker is installed by running your first container:
-``` Bash
-sudo docker run hello-world
+To avoid running Docker as root:
+
+```bash
+sudo usermod -aG docker ${USER}
 ```
-Install docker compose:
-``` Bash
+
+Log out and back in for the group change to apply.
+
+Verify Docker:
+
+```bash
+docker run hello-world
+```
+
+Install Docker Compose:
+
+```bash
 sudo apt install docker-compose-plugin
 ```
-Verify that Docker Compose is installed:
-``` Bash
+
+Verify Docker Compose:
+
+```bash
 docker compose version
 ```
-To use docker compose I would recommend creating a directory for each container you will create. For example I have my setup similar to down below for each container/stack on my setup.
 
-```docker/nginx-proxy-manager```
+---
 
-Within each respective container folder you create the ```docker-compose.yml``` file and paste in the docker compose configuration.
+# Folder Structure
 
-## NGINX Proxy Manager
+I keep each container or stack inside its own directory:
 
-NGINX Proxy Manager let’s you manage domains and control which application each domain points to. For example, you can create a domain name for Pi-hole (e.g., pihole.website.io) instead of using its IP address. This setup won’t be public; only devices within your LAN will be able to access these services.
+```text
+~/containers/nginx-proxy-manager
+~/containers/adguard
+~/containers/arr-stack
+```
 
-   Tutorial: Credit to "Wolfgang's Channel" on youtube for this [video](https://www.youtube.com/watch?v=qlcVx-k-02E) guide (I used deSEC for DNS, which is free.)
+Each directory contains its own `docker-compose.yml` file.
 
-``` Bash
+To start a stack:
+
+```bash
+docker compose up -d
+```
+
+---
+
+# NGINX Proxy Manager
+
+Nginx Proxy Manager makes it easy to manage reverse proxies and SSL certificates through a web UI.
+
+Example:
+
+Instead of opening services using IP addresses like:
+
+```text
+http://192.168.1.10:3000
+```
+
+You can use internal domains such as:
+
+```text
+portainer.lan
+adguard.lan
+```
+
+I followed Wolfgang's Channel on YouTube for the initial setup using deSEC DNS. [video](https://www.youtube.com/watch?v=qlcVx-k-02E)
+
+```yaml
 services:
   nginx_proxy_manager:
     image: jc21/nginx-proxy-manager:latest
@@ -139,17 +189,19 @@ networks:
     name: proxy
 ```
 
-Below is how you run all the docker compose configuration files:
-``` Bash
-docker compose up -d
+Access the web UI:
+
+```text
+http://<raspberrypi-ip>:81
 ```
-Access NGINX Proxy Manager at ```http://<raspberrypi-ip>:81```
 
-## Adguard Home
+---
 
-Adguard acts as a [DNS sinkhole](https://en.wikipedia.org/wiki/DNS_sinkhole), blocking ads and telemetry requests.
+# AdGuard Home
 
-``` Bash
+AdGuard Home acts as a DNS sinkhole, blocking ads, trackers, and telemetry requests across your network.
+
+```yaml
 services:
   adguardhome:
     image: adguard/adguardhome:latest
@@ -179,15 +231,28 @@ networks:
   proxy:
     external: true
 ```
-After running the docker compose yml you should be able to reach adguard through ```http://<raspberrypi_ip>:3003``` for initial setup and then ```http://<raspberrypi_ip>:8062```.
 
-Use DNS Rewrite to point domains towards reverse proxy for example *.lan -> 192.168.1.10
+Initial setup:
 
-## Portainer
-Portainer is a GUI tool for managing Docker containers.
+```text
+http://<raspberrypi-ip>:3003
+```
 
-##### Portainer Compose File
-``` Bash
+Main interface after setup:
+
+```text
+http://<raspberrypi-ip>:8062
+```
+
+I use DNS rewrites to point local domains such as `*.lan` to my reverse proxy.
+
+---
+
+# Portainer
+
+Portainer provides a simple web UI for managing Docker containers, images, networks, and volumes.
+
+```yaml
 services:
   portainer:
     image: portainer/portainer-ce:latest
@@ -212,12 +277,19 @@ networks:
     external: true
 ```
 
-Access Portainer at ```https://<raspberrypi-ip>:9443```
+Access:
 
-## Bitwarden/Vaultwarden
-Bitwarden is a password manager and vaultwarden is a more lightweight option that you can host yourself. This works with the bitwarden app and extension.
+```text
+https://<raspberrypi-ip>:9443
+```
 
-``` Bash
+---
+
+# Vaultwarden
+
+Vaultwarden is a lightweight self-hosted password manager, compatible with the Bitwarden apps and browser extensions.
+
+```yaml
 services:
   vaultwarden:
     image: vaultwarden/server:latest
@@ -239,15 +311,20 @@ networks:
     internal: true
 
   proxy:
-    external: true                           
+    external: true
 ```
 
-Once the container Is up you should be able to reach bitwarden through ```http://<raspberrypi-ip>:8080```, although you won't be able to create an account or use it just yet. Bitwarden needs to go through HTTPS otherwise errors will occur. There are multiple ways of doing this, one way is through a reverse proxy which I found to be the easiest, I use NGINX Proxy Manager for this.
+Vaultwarden should be exposed through HTTPS, otherwise some Bitwarden features may not work correctly.
 
-## Wireguard VPN
-VPN to reach my DNS and my LAN from outside my network. There are different options out there but I choose wireguard and found it simple to configure.
+I handle this using Nginx Proxy Manager.
 
-``` Bash
+---
+
+# WireGuard VPN
+
+WireGuard gives secure remote access to my LAN and internal services while away from home.
+
+```yaml
 services:
   wireguard:
     image: linuxserver/wireguard
@@ -281,16 +358,22 @@ networks:
   wireguard:
     name: wireguard
 ```
-The server side VPN is created, for the client side run the command below to get a QR code of the configuration for the client.
-``` Bash
-docker exec -it wireguard /app/show-peer {peer number or name}
+
+After setup, generate a client QR code with:
+
+```bash
+docker exec -it wireguard /app/show-peer <peer-name>
 ```
-To add more clients in the future edit the peers variable in the docker-compose file and recreate the container.
 
-## Watchtower
-Automatically monitors and updates your running Docker containers to keep them up to date with the latest images.
+You can scan the QR code directly in the WireGuard mobile app.
 
-``` Bash
+---
+
+# Watchtower
+
+Watchtower automatically checks for updated container images and redeploys containers.
+
+```yaml
 services:
   watchtower:
     image: nickfedor/watchtower:latest
@@ -301,7 +384,6 @@ services:
       WATCHTOWER_CLEANUP: "true"
       WATCHTOWER_INCLUDE_RESTARTING: "true"
       WATCHTOWER_DISABLE_CONTAINERS: watchtower,gluetun
-      WATCHTOWER_HTTP_API_METRICS: "true"
     ports:
       - "86:8080"
     volumes:
@@ -313,12 +395,19 @@ services:
 networks:
   watchtower:
     name: watchtower
-    internal: true
 ```
 
-## Filebrowser
-Lightweight web-based file manager that lets you browse, upload, and manage files on your Pi through a simple UI.
-```Bash
+I had issues letting watchtower update itself or gluetun so watchtower ignores those two containers.
+
+The docker compose above runs updates weekly.
+
+---
+
+# Filebrowser
+
+Filebrowser is a lightweight web-based file manager.
+
+```yaml
 services:
   filebrowser:
     image: hurlenko/filebrowser
@@ -342,13 +431,19 @@ networks:
     external: true
 ```
 
-Should either have a default login or you can check logs to see if it generates a temporary password. ```docker logs -f filebrowser```
+If a default password is generated, you can view it with:
 
-## Obsidian-LiveSync
+```bash
+docker logs -f filebrowser
+```
 
-Obsidian is a note-taking app. Obsidian LiveSync is a self-hosted synchronization plugin you can run on a Raspberry Pi, enabling real-time, end-to-end encrypted syncing of your notes across multiple devices without relying on third-party cloud services.
+---
 
-```Bash
+# Obsidian LiveSync
+
+Obsidian LiveSync allows encrypted syncing between devices using CouchDB for obsidian note taking.
+
+```yaml
 services:
   couchdb-obsidian-livesync:
     image: couchdb:latest
@@ -377,13 +472,17 @@ secrets:
     file: ./secrets/couchdb_password.txt
 ```
 
-Next you will have to setup the database, I would recommend following this [Guide](https://www.reddit.com/r/selfhosted/comments/1eo7knj/guide_obsidian_with_free_selfhosted_instant_sync/)
+I recommend following the dedicated setup guide for configuring the plugin and database made by Timely_Anteater_9330. [Guide](https://www.reddit.com/r/selfhosted/comments/1eo7knj/guide_obsidian_with_free_selfhosted_instant_sync/)
 
-## Gluetun
+---
 
-A secure VPN client container that routes traffic from other containers (like torrent or indexer services) through a VPN tunnel for privacy and IP protection.
+# Gluetun
 
-``` Bash
+Gluetun routes selected containers through a VPN tunnel.
+
+I mainly use it for torrent-related containers.
+
+```yaml
 services:
   gluetun:
     image: qmcgaw/gluetun:latest
@@ -399,8 +498,8 @@ services:
       - ./data:/gluetun
     environment:
       - TZ=Europe/Stockholm
-      - VPN_SERVICE_PROVIDER=private internet access
-      - VPN_TYPE=openvpn
+      - VPN_SERVICE_PROVIDER=
+      - VPN_TYPE=
       - OPENVPN_USER_FILE=/run/secrets/vpn_user
       - OPENVPN_PASSWORD_FILE=/run/secrets/vpn_password
       - SERVER_REGIONS=Switzerland
@@ -427,46 +526,67 @@ secrets:
     file: ./secrets/vpn_password.txt
 ```
 
-## arr stack
+Containers using:
 
-The *arr family is a collection of media automation tools that manage downloading, organizing, and tracking movies and TV shows through indexers and torrent clients.
-
-For my arr stack I run everything within the same docker compose configuration file. Seems logical since they are mostly dependent on eachother. The initial setup of all of these is pretty simple but if you have trouble or things you would like to optimize I would recommend using this guide [Trash Guide](https://trash-guides.info/).
-
-#### Docker Compose & Storage Layout
-My Docker Compose stack is slightly unique because I mount my NAS directly to my Raspberry Pi. If you’re following this setup, you’ll need to adjust the volume paths to match your own external or mounted storage.
-
-One important concept to understand is [hardlinks](https://en.wikipedia.org/wiki/Hard_link). 
-
-#### Hardlinks & File Structure
-
-In short hardlinks allow a single file to appear in multiple locations without consuming additional disk space.
-
-For example your torrent client downloads a movie to data/torrents/radarr, radarr then “moves” the file to data/media. Instead of copying the file (which would double storage usage), radarr creates a hardlink. The operation is instant and both paths point to the same data blocks on disk.
-
-#### File Structure
-
-The main importance when making your own file structure is that all containers reference the same root path which is data in this case. This is required for hardlinking to function.
-
+```yaml
+network_mode: "container:gluetun"
 ```
+
+share the same VPN connection.
+
+---
+
+# arr Stack
+
+The *arr stack automates downloading, organizing, and managing media.
+
+My setup uses:
+
+* Radarr
+* Sonarr
+* Prowlarr
+* qBittorrent
+* Overseerr
+* FlareSolverr
+
+I run these in a single Docker Compose stack because they depend heavily on each other.
+
+---
+
+# Hardlinks & Storage Layout
+
+All containers reference the same root mount (`/mnt/nas`) so hardlinking works correctly.
+
+Example structure:
+
+```text
 nas
 ├── downloads
-│  ├── radarr
-│  ├── tv-sonarr
-├── tv-shows
-└── movies
+│   ├── radarr
+│   └── tv-sonarr
+├── movies
+└── tv-shows
 ```
-#### Verify Hardlinking
 
-You can verify hardlinking by checking linkcount on the files, should be more than 1.
+Hardlinks let media managers move files instantly without duplicating storage usage.
 
-```ls -l```
+You can verify hardlinks with:
 
-If you want more confirmation you can compare the inode number on both files in downloads directory and in the finished plex diretory which in above case would be movies or tv-shows. Use command on both locations of the file and compare inode number. Same inode number = hardlinked.
+```bash
+ls -l
+```
 
-```stat filename.mkv```
+or compare inode numbers:
 
-``` Bash
+```bash
+stat filename.mkv
+```
+
+If both files share the same inode, hardlinking works correctly.
+
+---
+
+```yaml
 services:
   radarr:
     image: lscr.io/linuxserver/radarr:latest
@@ -579,18 +699,22 @@ volumes:
   qbittorrent_config:
 ```
 
-## cpu_temp.sh
+# CPU Temperature Alerts
 
-First create a new server in Discord where you will get your alerts.
+I use a simple Bash script with Discord webhooks to notify me if the Raspberry Pi overheats.
 
-On the raspberry pi create a file, you can call it anything, I named it cpu_temp.sh. Paste what's below into it and place the discord webhook link at the correct variable in the script:
+The script:
 
-NOTE: Credit to Dave McKay for the initial script and tutorial on how to do it [LINK](https://www.howtogeek.com/discord-slack-alert-raspberry-pi-too-hot/)
+* Sends an initial alert when the CPU exceeds a threshold
+* Sends additional alerts every 5°C increase
+* Resets automatically once temperatures drop
 
-``` Bash
+I run the script using a systemd timer every 10 minutes.
+
+```bash
 #!/bin/bash
 
-BASE_TEMP=50
+BASE_TEMP=60
 STEP=5
 STATE_FILE="/tmp/pi_temp_alert.state"
 
@@ -598,7 +722,7 @@ STATE_FILE="/tmp/pi_temp_alert.state"
 pi_temp=$(vcgencmd measure_temp | awk -F "[=.'']" '{print int($2)}')
 this_pi=$(hostname)
 
-discord_pi_webhook=""
+discord_pi_webhook=
 
 # If below base temp → reset state
 if [[ "$pi_temp" -lt "$BASE_TEMP" ]]; then
@@ -629,45 +753,20 @@ if [[ "$temp_diff" -ge "$STEP" ]]; then
 fi
 ```
 
-To test it and make sure it's working change the 45 in the if statement to something lower like 20. Run the file ./cpu_temp.sh and you should get a notification in Discord. 
+---
 
-Now to automate this I used systemd timers and used this as a reference on what to do [LINK](https://www.howtogeek.com/replace-cron-jobs-with-systemd-timers/).
+# Obsidian Backup Script
 
-Create a pialert.service and pialert.timer file at /etc/systemd/system
+This script:
 
-cpu-temp.service
+* Stops the container
+* Creates a timestamped backup using `rsync`
+* Restarts the container
+* Removes old backups automatically
 
-``` Bash
-[Unit]
-Description=CPU Temperature Monitor
+Backups are stored on my NAS.
 
-[Service]
-Type=oneshot
-ExecStart=/home/admin/scripts/cpu_temp.sh
-```
-
-cpu-temp.timer
-
-``` Bash
-[Unit]
-Description=Run CPU temp monitor every 5 minutes
-
-[Timer]
-OnBootSec=5min
-OnUnitActiveSec=10min
-Persistent=true
-
-[Install]
-WantedBy=timers.target
-```
-
-```sudo systemctl enable --now cpu-temp.timer```
-
-## backup-obsidian.sh
-
-backup-obsidian.sh
-
-``` Bash
+```bash
 #!/bin/bash
 
 # ── Config ────────────────────────────────────────────────────────────────────
@@ -723,95 +822,21 @@ find "$BACKUP_ROOT" -maxdepth 1 -type d -mtime +$RETENTION_DAYS -exec rm -rf {} 
 log "Done."
 ```
 
-```sudo nano /etc/systemd/system/obsidian-backup.service```
+---
 
-``` Bash
-[Unit]
-Description=Obsidian LiveSync Backup
+# Docker Git Backup Script
 
-[Service]
-Type=oneshot
-ExecStart=/home/admin/scripts/backup-obsidian.sh
-```
+I use GitHub as an off-site backup for my Docker Compose files.
 
-```sudo nano /etc/systemd/system/obsidian-backup.timer```
+The script:
 
-``` Bash
-[Unit]
-Description=Nightly Obsidian Backup
+* Adds changed files
+* Creates a commit automatically
+* Pushes updates to GitHub
 
-[Timer]
-OnCalendar=*-*-* 03:00:00
-Persistent=true
+Sensitive files are excluded using `.gitignore`.
 
-[Install]
-WantedBy=timers.target
-```
-
-```sudo systemctl enable --now obsidian-backup.timer```
-
-## docker-backup.sh
-
-This part requires a little more work. You'll have to use git.
-
-Install
-```apt-get install git```
-
-Generate SSH Key
-```ssh-keygen -t ed25519 -C "rpi-backup"```
-
-Show SSH Key
-"```cat ~/.ssh/id_ed25519.pub"```
-
-Add it to GitHub, [Here](https://github.com/settings/keys) 
-
-Test It
-```ssh -T git@github.com"```
-
-Here it depends if you already have an existing github repo or wants to create one. I already have one so my flow looks like this:
-
-``` Bash
-cd ~/containers
-git init
-git remote add origin git@github.com:github-username/github-repo.git
-git add -A
-git commit -m "New Raspberry Pi rebuild"
-git branch -M main
-git push -u origin main --force"
-```
-Also add a .gitignore file in the containers dir
-
-``` Bash
-# Ignore everything by default
-*
-
-# Allow folders
-!*/
-
-# Allow docker compose files
-!*/docker-compose.yml
-!*/docker-compose.yaml
-
-# Ignore all env files
-*.env
-# Ignore all txt files
-*.txt
-# Ignore Docker volumes / letsencrypt / DATA_DIR folders
-*/letsencrypt/*
-*/DATA_DIR/*
-*/data
-*/work
-# Ignore raw YAML configs (we will push only sanitized examples)
-*.yaml
-
-# Allow root files
-!.gitignore
-```
-
-
-docker-backup.sh
-
-``` Bash
+```bash
 #!/bin/bash
 cd ~/containers
 git add -A
@@ -820,38 +845,58 @@ git commit -m "Auto backup $(date '+%Y-%m-%d %H:%M')"
 git push origin main
 ```
 
-### Systemd Timers
+---
 
-```sudo nano /etc/systemd/system/docker-backup.service```
+# Example `.gitignore`
 
-``` Bash
-[Unit]
-Description=Git backup of Docker configs
+```gitignore
+# Ignore everything by default
+*
 
-[Service]
-Type=oneshot
-WorkingDirectory=/home/admin/containers
-ExecStart=/home/admin/scripts/docker-backup.sh
+# Allow folders
+!*/
 
-sudo nano /etc/systemd/system/docker-backup.timer
+# Allow Docker Compose files
+!*/docker-compose.yml
+!*/docker-compose.yaml
 
-[Unit]
-Description=Hourly Docker Config Backup
+# Ignore secrets and environment files
+*.env
+*.txt
 
-[Timer]
-OnCalendar=Sun *-*-* 03:30:00
-Persistent=true
+# Ignore persistent application data
+*/letsencrypt/*
+*/DATA_DIR/*
+*/data
+*/work
 
-[Install]
-WantedBy=timers.target
+# Ignore additional YAML configs
+*.yaml
+
+# Keep root files
+!.gitignore
 ```
 
-```sudo systemctl enable --now docker-backup.timer```
+---
 
+# NAS Mount
 
-## Random
+Example `/etc/fstab` entry for mounting a Synology NAS using NFS:
 
-/etc/fstab
-
+```fstab
 NASIP:/volume1/NAS  /mnt/nas  nfs  defaults,_netdev,x-systemd.automount  0  0
+```
 
+---
+
+# Final Notes
+
+This setup has changed a lot over time and will probably continue evolving.
+
+The repository mainly exists as:
+
+* Documentation for my own rebuilds
+* A backup of working configurations
+* A reference for anyone building something similar
+
+Feel free to adapt any part of it for your own setup.

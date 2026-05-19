@@ -21,7 +21,7 @@ The goal of this project is to keep everything self-hosted, easy to rebuild, and
 | [**WireGuard**](#wireguard-vpn)                             | Secure remote access to the LAN     | [↗︎](https://www.wireguard.com/)                               |
 | [**Gluetun**](#gluetun)                                     | VPN routing for selected containers | [↗︎](https://github.com/qdm12/gluetun)                         |
 | [**OpenSpeedTest**](#openspeedtest)                         | Local network speed testing         | [↗︎](https://openspeedtest.com/selfhosted-speedtest)           |
-| [**UniFi Network Application**](#unifi-network-application) | UniFi controller                    | —                                                              |
+| [**UniFi Network Application**](#unifi-network-application) | UniFi controller                    | [↗︎](https://github.com/linuxserver/docker-unifi-network-application)|
 
 ## Security & Privacy
 
@@ -60,9 +60,9 @@ The goal of this project is to keep everything self-hosted, easy to rebuild, and
 
 | Script                                       | Purpose                                               |
 | -------------------------------------------- | ----------------------------------------------------- |
-| [**cpu_temp.sh**](#cpu_tempsh)               | Sends Discord alerts if CPU temperature gets too high |
-| [**backup-obsidian.sh**](#backup-obsidiansh) | Backs up Obsidian LiveSync data to NAS                |
-| [**docker-backup.sh**](#docker-backupsh)     | Pushes Docker configs to GitHub                       |
+| [**cpu_temp.sh**](#cpu-temperature-alerts)               | Sends Discord alerts if CPU temperature gets too high |
+| [**backup-obsidian.sh**](#obsidian-backup-script) | Backs up Obsidian LiveSync data to NAS                |
+| [**docker-backup.sh**](#docker-git-backup-script)     | Pushes Docker configs to GitHub                       |
 
 ---
 
@@ -94,13 +94,13 @@ Installation steps vary depending on your OS. Refer to Docker's official documen
 
 ## Docker on Debian
 
-```bash
+```yaml
 curl -sSl https://get.docker.com | sh
 ```
 
 To avoid running Docker as root:
 
-```bash
+```yaml
 sudo usermod -aG docker ${USER}
 ```
 
@@ -108,19 +108,19 @@ Log out and back in for the group change to apply.
 
 Verify Docker:
 
-```bash
+```yaml
 docker run hello-world
 ```
 
 Install Docker Compose:
 
-```bash
+```yaml
 sudo apt install docker-compose-plugin
 ```
 
 Verify Docker Compose:
 
-```bash
+```yaml
 docker compose version
 ```
 
@@ -140,7 +140,7 @@ Each directory contains its own `docker-compose.yml` file.
 
 To start a stack:
 
-```bash
+```yaml
 docker compose up -d
 ```
 
@@ -361,7 +361,7 @@ networks:
 
 After setup, generate a client QR code with:
 
-```bash
+```yaml
 docker exec -it wireguard /app/show-peer <peer-name>
 ```
 
@@ -433,7 +433,7 @@ networks:
 
 If a default password is generated, you can view it with:
 
-```bash
+```yaml
 docker logs -f filebrowser
 ```
 
@@ -572,13 +572,13 @@ Hardlinks let media managers move files instantly without duplicating storage us
 
 You can verify hardlinks with:
 
-```bash
+```yaml
 ls -l
 ```
 
 or compare inode numbers:
 
-```bash
+```yaml
 stat filename.mkv
 ```
 
@@ -699,9 +699,128 @@ volumes:
   qbittorrent_config:
 ```
 
+# OpenSpeedTest
+
+```yaml
+services:
+  speedtest:
+    image: openspeedtest/latest
+    container_name: openspeedtest
+    restart: unless-stopped
+    ports:
+      - "3002:3002"
+      - "3001:3001"
+    networks:
+      - proxy
+
+networks:
+  proxy:
+    external: true
+```
+
+# UniFi Network Application
+
+```yaml
+services:
+  unifi-db:
+    image: mongo:4.4.18
+    container_name: unifi-db
+    network_mode: host
+
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+      - MONGO_USER=${MONGO_USER}
+      - MONGO_PASS=${MONGO_PASS}
+      - MONGO_DBNAME=${MONGO_DBNAME}
+      - MONGO_AUTHSOURCE=${MONGO_AUTHSOURCE}
+
+    volumes:
+      - ./mongo/data:/data/db
+      - ./init-mongo.sh:/docker-entrypoint-initdb.d/init-mongo.sh:ro
+
+    restart: unless-stopped
+
+  unifi-network-application:
+    image: lscr.io/linuxserver/unifi-network-application:latest
+    container_name: unifi
+    network_mode: host
+
+    depends_on:
+      - unifi-db
+
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+
+      - MONGO_USER=${MONGO_USER}
+      - MONGO_PASS=${MONGO_PASS}
+      - MONGO_HOST=127.0.0.1
+      - MONGO_PORT=27017
+      - MONGO_DBNAME=${MONGO_DBNAME}
+      - MONGO_AUTHSOURCE=${MONGO_AUTHSOURCE}
+
+    volumes:
+      - ./unifi:/config
+
+    restart: unless-stopped
+```
+
+init-mongo.sh
+
+```bash
+#!/bin/bash
+
+if which mongosh > /dev/null 2>&1; then
+  mongo_init_bin='mongosh'
+else
+  mongo_init_bin='mongo'
+fi
+"${mongo_init_bin}" <<EOF
+use ${MONGO_AUTHSOURCE}
+db.auth("${MONGO_INITDB_ROOT_USERNAME}", "${MONGO_INITDB_ROOT_PASSWORD}")
+db.createUser({
+  user: "${MONGO_USER}",
+  pwd: "${MONGO_PASS}",
+  roles: [
+    "clusterMonitor",
+    { db: "${MONGO_DBNAME}", role: "dbOwner" },
+    { db: "${MONGO_DBNAME}_stat", role: "dbOwner" },
+    { db: "${MONGO_DBNAME}_audit", role: "dbOwner" },
+    { db: "${MONGO_DBNAME}_restore", role: "dbOwner" }
+  ]
+})
+EOF
+```
+
+.env
+
+```shell
+# ===== System =====
+PUID=1000
+PGID=1000
+TZ=TZ
+
+# ===== MongoDB root =====
+MONGO_INITDB_ROOT_USERNAME=root
+MONGO_INITDB_ROOT_PASSWORD=<strong password>
+
+# ===== UniFi Mongo user =====
+MONGO_USER=unifi
+MONGO_PASS=<strong password>
+MONGO_DBNAME=unifi
+MONGO_AUTHSOURCE=admin
+
+# ===== Mongo connection =====
+MONGO_HOST=unifi-db
+MONGO_PORT=27017
+.env
+```
+
 # CPU Temperature Alerts
 
-I use a simple Bash script with Discord webhooks to notify me if the Raspberry Pi overheats.
+I use a simple yaml script with Discord webhooks to notify me if the Raspberry Pi overheats.
 
 The script:
 
@@ -711,8 +830,8 @@ The script:
 
 I run the script using a systemd timer every 10 minutes.
 
-```bash
-#!/bin/bash
+```yaml
+#!/bin/yaml
 
 BASE_TEMP=60
 STEP=5
@@ -766,8 +885,8 @@ This script:
 
 Backups are stored on my NAS.
 
-```bash
-#!/bin/bash
+```yaml
+#!/bin/yaml
 
 # ── Config ────────────────────────────────────────────────────────────────────
 COMPOSE_DIR="/home/admin/containers/obsidian-livesync"
@@ -836,8 +955,8 @@ The script:
 
 Sensitive files are excluded using `.gitignore`.
 
-```bash
-#!/bin/bash
+```yaml
+#!/bin/yaml
 cd ~/containers
 git add -A
 git diff --cached --quiet && echo "No changes, skipping commit." && exit 0

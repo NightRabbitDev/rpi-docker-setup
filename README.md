@@ -1002,8 +1002,10 @@ git push origin main
 
 Example `/etc/fstab` entry for mounting a Synology NAS using NFS:
 
-```fstab
-192.168.1.50:/volume1/nas /mnt/nas nfs defaults,nofail,_netdev,x-systemd.automount,x-systemd.device-timeout=30 0 0```
+```bash
+192.168.1.50:/volume1/nas /mnt/nas nfs defaults,nofail,_netdev,x-systemd.automount,x-systemd.device-timeout=30 0 0
+```
+
 ---
 
 # Final Notes

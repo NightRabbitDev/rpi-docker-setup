@@ -63,6 +63,8 @@ The goal of this project is to keep everything self-hosted, easy to rebuild, and
 | [**cpu_temp.sh**](#cpu-temperature-alerts)               | Sends Discord alerts if CPU temperature gets too high |
 | [**backup-obsidian.sh**](#obsidian-backup-script) | Backs up Obsidian LiveSync data to NAS                |
 | [**docker-backup.sh**](#docker-git-backup-script)     | Pushes Docker configs to GitHub                       |
+| [**unattended-upgrades**](#unattended-upgrades)     | Automated OS update                      |
+| [**NAS Mount**](#nas-mount)     | Mount NAS on RPI startup               |
 
 ---
 
@@ -966,7 +968,7 @@ git push origin main
 
 ---
 
-# Example `.gitignore`
+Example `.gitignore`
 
 ```gitignore
 # Ignore everything by default
@@ -997,6 +999,14 @@ git push origin main
 ```
 
 ---
+
+# Unattended-upgrades
+
+```bash
+sudo apt install unattended-upgrades
+```
+Se for more info: https://wiki.debian.org/PeriodicUpdates
+
 
 # NAS Mount
 
